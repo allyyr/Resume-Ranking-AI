@@ -1,0 +1,35 @@
+Dataset
+
+Resume datasets
+Job descriptions
+
+Architecture
+
+Resume PDF
+
+↓
+
+OCR
+
+↓
+
+Embedding
+
+↓
+
+Sentence Transformer
+
+↓
+
+Similarity
+
+↓
+
+Ranking
+
+Skills
+
+NLP
+Transformers
+Vector Database
+FastAPI
