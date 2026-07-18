@@ -1,0 +1,138 @@
+<svg viewBox="0 0 1200 1360" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="1360" fill="#f8fafc"/>
+
+  <!-- Title -->
+  <text x="600" y="48" text-anchor="middle" font-size="26" font-weight="700" fill="#0f172a">Resume Matcher — Pipeline Architecture</text>
+  <text x="600" y="74" text-anchor="middle" font-size="14" fill="#64748b">OCR extraction → fine-tuned embeddings → FAISS retrieval → cross-encoder reranking</text>
+
+  <!-- ================= STAGE 0: Input ================= -->
+  <rect x="470" y="104" width="260" height="56" rx="12" fill="#0f172a" filter="url(#softShadow)"/>
+  <text x="600" y="128" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff">8,905 Resume PDFs</text>
+  <text x="600" y="146" text-anchor="middle" font-size="11.5" fill="#cbd5e1">Kaggle · hadikp/resume-data-pdf</text>
+
+  <line x1="600" y1="160" x2="600" y2="190" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ================= STAGE 1: Extraction ================= -->
+  <rect x="90" y="196" width="1020" height="200" rx="16" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+  <text x="116" y="226" font-size="15" font-weight="700" fill="#9a3412">1 · Text Extraction</text>
+  <text x="116" y="244" font-size="11.5" fill="#c2410c">CPU render pool ‖ dual-GPU OCR pool — decoupled so neither blocks the other</text>
+
+  <!-- CPU box -->
+  <rect x="120" y="262" width="440" height="110" rx="12" fill="#ffffff" stroke="#fed7aa" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="340" y="288" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">CPU · multiprocessing pool</text>
+  <text x="340" y="309" text-anchor="middle" font-size="12" fill="#475569">PyMuPDF: native text layer first</text>
+  <text x="340" y="328" text-anchor="middle" font-size="12" fill="#475569">no text? render page @ zoom 2.0</text>
+  <text x="340" y="352" text-anchor="middle" font-size="11" fill="#94a3b8">fork-safe · all cores in parallel</text>
+
+  <!-- arrow CPU -> GPU -->
+  <line x1="560" y1="317" x2="628" y2="317" stroke="#fb923c" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="594" y="308" text-anchor="middle" font-size="10.5" fill="#c2410c">page images</text>
+
+  <!-- GPU box -->
+  <rect x="632" y="262" width="440" height="110" rx="12" fill="#ffffff" stroke="#fed7aa" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="852" y="288" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">GPU × 2 · dedicated processes</text>
+  <text x="852" y="309" text-anchor="middle" font-size="12" fill="#475569">EasyOCR, one model pinned per GPU</text>
+  <text x="852" y="328" text-anchor="middle" font-size="12" fill="#475569">via CUDA_VISIBLE_DEVICES</text>
+  <text x="852" y="352" text-anchor="middle" font-size="11" fill="#94a3b8">checkpoint every 500 PDFs → HF dataset</text>
+
+  <line x1="600" y1="396" x2="600" y2="424" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ================= STAGE 2: Cleaning ================= -->
+  <rect x="240" y="430" width="720" height="112" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="600" y="458" text-anchor="middle" font-size="15" font-weight="700" fill="#334155">2 · Cleaning + Category Labels</text>
+  <text x="600" y="480" text-anchor="middle" font-size="12" fill="#475569">normalize whitespace / bullets · drop near-empty extractions</text>
+  <text x="600" y="500" text-anchor="middle" font-size="12" fill="#475569">category recovered from parent folder name → 49 canonical labels</text>
+  <text x="600" y="522" text-anchor="middle" font-size="11" fill="#94a3b8">8,905 extracted → 8,874 cleaned resumes</text>
+
+  <line x1="600" y1="542" x2="600" y2="570" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ================= STAGE 3: Split + Fine-tune ================= -->
+  <rect x="90" y="576" width="1020" height="200" rx="16" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5"/>
+  <text x="116" y="606" font-size="15" font-weight="700" fill="#6b21a8">3 · Fine-tuning (category-weak-supervised)</text>
+
+  <rect x="120" y="626" width="290" height="126" rx="12" fill="#ffffff" stroke="#e9d5ff" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="265" y="652" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">Train / Val split</text>
+  <text x="265" y="674" text-anchor="middle" font-size="12" fill="#475569">80 / 20, stratified</text>
+  <text x="265" y="694" text-anchor="middle" font-size="12" fill="#475569">by category</text>
+  <text x="265" y="722" text-anchor="middle" font-size="16" font-weight="700" fill="#7e22ce">7,121 / 1,753</text>
+  <text x="265" y="740" text-anchor="middle" font-size="10.5" fill="#94a3b8">train / val resumes</text>
+
+  <line x1="410" y1="689" x2="450" y2="689" stroke="#c084fc" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="454" y="626" width="300" height="126" rx="12" fill="#ffffff" stroke="#e9d5ff" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="604" y="652" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">Positive pairs</text>
+  <text x="604" y="674" text-anchor="middle" font-size="12" fill="#475569">same-category resumes</text>
+  <text x="604" y="694" text-anchor="middle" font-size="12" fill="#475569">≤200 pairs / category cap</text>
+  <text x="604" y="722" text-anchor="middle" font-size="16" font-weight="700" fill="#7e22ce">9,800 pairs</text>
+  <text x="604" y="740" text-anchor="middle" font-size="10.5" fill="#94a3b8">across 49 categories</text>
+
+  <line x1="758" y1="689" x2="798" y2="689" stroke="#c084fc" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="802" y="626" width="288" height="126" rx="12" fill="#ffffff" stroke="#e9d5ff" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="946" y="652" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">Bi-encoder fine-tune</text>
+  <text x="946" y="674" text-anchor="middle" font-size="12" fill="#475569">all-MiniLM-L6-v2 (384d)</text>
+  <text x="946" y="694" text-anchor="middle" font-size="12" fill="#475569">MultipleNegativesRankingLoss</text>
+  <text x="946" y="722" text-anchor="middle" font-size="16" font-weight="700" fill="#7e22ce">50 epochs</text>
+  <text x="946" y="740" text-anchor="middle" font-size="10.5" fill="#94a3b8">in-batch negatives, dual-GPU</text>
+
+  <line x1="600" y1="776" x2="600" y2="804" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ================= STAGE 4: Index ================= -->
+  <rect x="290" y="810" width="620" height="100" rx="16" fill="#ecfeff" stroke="#67e8f9" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="600" y="838" text-anchor="middle" font-size="15" font-weight="700" fill="#155e75">4 · FAISS Index</text>
+  <text x="600" y="860" text-anchor="middle" font-size="12" fill="#0e7490">IndexFlatIP over L2-normalized embeddings = cosine similarity</text>
+  <text x="600" y="882" text-anchor="middle" font-size="11" fill="#0891b2">8,874 resumes indexed, 384-dim vectors</text>
+
+  <line x1="600" y1="910" x2="600" y2="938" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ================= STAGE 5: Retrieve + Rerank ================= -->
+  <rect x="90" y="944" width="1020" height="180" rx="16" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="116" y="974" font-size="15" font-weight="700" fill="#166534">5 · Two-stage Matching</text>
+
+  <rect x="140" y="994" width="440" height="106" rx="12" fill="#ffffff" stroke="#bbf7d0" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="360" y="1020" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">Stage A · Retrieve</text>
+  <text x="360" y="1041" text-anchor="middle" font-size="12" fill="#475569">FAISS cosine search, top-50 candidates</text>
+  <text x="360" y="1060" text-anchor="middle" font-size="12" fill="#475569">fast, approximate, whole-corpus scale</text>
+  <text x="360" y="1082" text-anchor="middle" font-size="11" fill="#94a3b8">optional category_filter</text>
+
+  <line x1="580" y1="1047" x2="628" y2="1047" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="604" y="1038" text-anchor="middle" font-size="10.5" fill="#166534">shortlist</text>
+
+  <rect x="632" y="994" width="428" height="106" rx="12" fill="#ffffff" stroke="#bbf7d0" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="846" y="1020" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">Stage B · Rerank</text>
+  <text x="846" y="1041" text-anchor="middle" font-size="12" fill="#475569">cross-encoder/ms-marco-MiniLM-L-6-v2</text>
+  <text x="846" y="1060" text-anchor="middle" font-size="12" fill="#475569">reads (job description, resume) jointly</text>
+  <text x="846" y="1082" text-anchor="middle" font-size="11" fill="#94a3b8">slower, only run on the shortlist</text>
+
+  <line x1="600" y1="1124" x2="600" y2="1152" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- ================= Output ================= -->
+  <rect x="420" y="1158" width="360" height="60" rx="12" fill="#0f172a" filter="url(#softShadow)"/>
+  <text x="600" y="1184" text-anchor="middle" font-size="14" font-weight="600" fill="#ffffff">Ranked resumes for the job description</text>
+  <text x="600" y="1202" text-anchor="middle" font-size="11" fill="#cbd5e1">MRR 0.932 · NDCG@5 0.898</text>
+
+  <!-- Legend -->
+  <g transform="translate(90,1250)">
+    <rect x="0" y="0" width="1020" height="86" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="18" y="24" font-size="12" font-weight="700" fill="#334155">Legend</text>
+    <rect x="18" y="36" width="14" height="14" rx="3" fill="#fff7ed" stroke="#fdba74"/>
+    <text x="38" y="47" font-size="11.5" fill="#475569">Extraction (CPU + GPU)</text>
+    <rect x="230" y="36" width="14" height="14" rx="3" fill="#faf5ff" stroke="#d8b4fe"/>
+    <text x="250" y="47" font-size="11.5" fill="#475569">Fine-tuning</text>
+    <rect x="380" y="36" width="14" height="14" rx="3" fill="#ecfeff" stroke="#67e8f9"/>
+    <text x="400" y="47" font-size="11.5" fill="#475569">Indexing</text>
+    <rect x="510" y="36" width="14" height="14" rx="3" fill="#f0fdf4" stroke="#86efac"/>
+    <text x="530" y="47" font-size="11.5" fill="#475569">Retrieval / Matching</text>
+    <rect x="18" y="60" width="14" height="14" rx="3" fill="#f1f5f9" stroke="#cbd5e1"/>
+    <text x="38" y="71" font-size="11.5" fill="#475569">Preprocessing</text>
+  </g>
+</svg>
