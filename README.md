@@ -9,7 +9,7 @@ A semantic resume-to-job-description matching system: OCR extraction from 8,905 
 [`hadikp/resume-data-pdf`](https://www.kaggle.com/datasets/hadikp/resume-data-pdf) on Kaggle — 8,905 resume PDFs across category-labeled folders (Accountant, HR, Python Developer, etc.), a mix of native-text and scanned-image PDFs. Downloaded via `kagglehub`.
 
 ## 1. Text extraction
-
+      
 Each page is handled in two stages:
 1. **Native text first** — `PyMuPDF` pulls the embedded text layer where one exists (free, instant).
 2. **OCR fallback** — pages with no usable text layer (< 20 characters) are rendered to an image at **zoom 2.0** and OCR'd with **EasyOCR on GPU**.
